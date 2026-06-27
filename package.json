@@ -1,0 +1,21 @@
+{
+  "name": "comando-redes-backend",
+  "version": "0.1.0",
+  "description": "Backend de Comando Redes: marcas, auditoria IA del sitio, Google Analytics y publicacion en redes.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "cron": "node src/cron.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2"
+  },
+  "optionalDependencies": {
+    "@google-analytics/data": "^4.7.0"
+  },
+  "engines": { "node": ">=18" }
+}

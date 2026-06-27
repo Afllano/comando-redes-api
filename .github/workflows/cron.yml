@@ -1,0 +1,22 @@
+# Cron gratis con GitHub Actions: corre las tareas programadas (auditorias cada 15 dias, etc.)
+# Si subes el backend como su propio repo, este archivo ya esta en la ruta correcta (.github/workflows).
+# Agrega tus secretos en GitHub: Settings -> Secrets and variables -> Actions.
+name: tareas-programadas
+
+on:
+  schedule:
+    - cron: "0 13 * * *"   # todos los dias 13:00 UTC (~8am Colombia)
+  workflow_dispatch: {}      # tambien permite correrlo a mano
+
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+      - run: npm ci || npm install
+      - run: npm run cron
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GA_SERVICE_ACCOUNT_JSON: ${{ secrets.GA_SERVICE_ACCOUNT_JSON }}
