@@ -77,9 +77,16 @@ Devuelve SOLO JSON válido sin markdown:
 export async function scanSiteContent(url) {
   let target = url.trim();
   if (!/^https?:\/\//i.test(target)) target = "https://" + target;
+  // Cabeceras de navegador real para evitar bloqueos (403) de sitios con proteccion anti-bot.
+  const BROWSER_HEADERS = {
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+    "accept-language": "es-ES,es;q=0.9,en;q=0.8",
+    "upgrade-insecure-requests": "1",
+  };
   let html;
   try {
-    const res = await fetch(target, { headers: { "user-agent": "Mozilla/5.0 (compatible; ComandoRedesBot/1.0)" }, redirect: "follow" });
+    const res = await fetch(target, { headers: BROWSER_HEADERS, redirect: "follow" });
     if (!res.ok) throw new Error(`status ${res.status}`);
     html = await res.text();
   } catch (e) { throw new Error(`No se pudo abrir el sitio: ${e.message}`); }
@@ -113,7 +120,7 @@ export async function scanSiteContent(url) {
   await Promise.all(cssLinks.map(async href => {
     try {
       const u = new URL(href, target).href;
-      const r = await fetch(u, { headers: { "user-agent": "Mozilla/5.0" } });
+      const r = await fetch(u, { headers: BROWSER_HEADERS });
       if (r.ok) tallyColors((await r.text()).slice(0, 200000), counts);
     } catch {}
   }));
@@ -181,11 +188,7 @@ Devuelve SOLO JSON válido sin markdown, todo en español:
   const data = parseJSON(await callClaude(prompt, { maxTokens: 1500 }));
   if (!data) return null;
   if (logo) data.logo = logo;
-  // Si no se halló Google Business en la web, búscalo en Google por nombre + dominio (verificando que sea la misma marca).
-  if (!networks.google && data.name) {
-    const g = await findGoogleBusiness(data.name, target);
-    if (g) networks.google = g;
-  }
+  // (La busqueda de Google Business por nombre llegara con Google Places API; aqui solo se usan enlaces del sitio.)
   if (Object.keys(networks).length) data.networks = networks;
   // Si la IA no devolvió paleta usable, cae a los colores detectados.
   const valid = (data.palette || []).filter(c => /^#[0-9a-fA-F]{6}$/.test(c || ""));
