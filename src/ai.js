@@ -85,11 +85,20 @@ export async function scanSiteContent(url) {
     "upgrade-insecure-requests": "1",
   };
   let html;
+  let directError = "";
   try {
     const res = await fetch(target, { headers: BROWSER_HEADERS, redirect: "follow" });
     if (!res.ok) throw new Error(`status ${res.status}`);
     html = await res.text();
-  } catch (e) { throw new Error(`No se pudo abrir el sitio: ${e.message}`); }
+  } catch (e) { directError = e.message; }
+  // Respaldo: si el sitio bloquea al servidor (403 de Cloudflare en IPs de nube), traer el HTML via lector intermedio.
+  if (!html) {
+    try {
+      const res = await fetch("https://r.jina.ai/" + target, { headers: { ...BROWSER_HEADERS, "x-return-format": "html" } });
+      if (res.ok) html = await res.text();
+    } catch {}
+  }
+  if (!html) throw new Error(`No se pudo abrir el sitio: ${directError || "bloqueado"}`);
 
   // Deteccion de logo por prioridad. NUNCA usar imagenes hero/banner: solo logos reales o el icono de marca.
   const abs = (u) => { if (!u) return ""; try { return new URL(u, target).href; } catch { return ""; } };
