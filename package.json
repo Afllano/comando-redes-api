@@ -15,7 +15,9 @@
     "express": "^4.19.2"
   },
   "optionalDependencies": {
-    "@google-analytics/data": "^4.7.0"
+    "@google-analytics/data": "^4.12.1"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  }
 }

@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { db } from "../store.js";
 
 const r = Router();
 
@@ -17,14 +16,14 @@ async function gaClient() {
   return new BetaAnalyticsDataClient();
 }
 
-// Reporte real de GA4 para una marca (necesita brand.gaId = "properties/123456789" o "123456789").
-r.get("/analytics/:brandId", async (req, res) => {
+// Reporte real de GA4 a partir de un ID de propiedad (?gaId=123456789 o properties/123456789).
+// No depende de la base del backend: el frontend guarda las marcas en el navegador y manda el gaId directo.
+r.get("/analytics", async (req, res) => {
   try {
-    const brand = await db.brand(req.params.brandId);
-    if (!brand) return res.status(404).json({ error: "Marca no encontrada" });
-    if (!brand.gaId) return res.status(400).json({ error: "La marca no tiene ID de GA4 configurado" });
+    const gaId = req.query.gaId;
+    if (!gaId) return res.status(400).json({ error: "Falta gaId" });
 
-    const property = brand.gaId.startsWith("properties/") ? brand.gaId : `properties/${brand.gaId.replace(/^G-/, "")}`;
+    const property = gaId.startsWith("properties/") ? gaId : `properties/${gaId.replace(/^G-/, "")}`;
     const client = await gaClient();
 
     const [report] = await client.runReport({
