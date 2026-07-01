@@ -10,7 +10,10 @@ async function gaClient() {
   const json = process.env.GA_SERVICE_ACCOUNT_JSON;
   if (json) {
     const creds = JSON.parse(json);
-    return new BetaAnalyticsDataClient({ credentials: creds });
+    return new BetaAnalyticsDataClient({
+      projectId: creds.project_id,
+      credentials: { client_email: creds.client_email, private_key: creds.private_key },
+    });
   }
   // Si no hay JSON inline, usa GOOGLE_APPLICATION_CREDENTIALS (ruta al archivo).
   return new BetaAnalyticsDataClient();
