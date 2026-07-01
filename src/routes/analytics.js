@@ -16,6 +16,17 @@ async function gaClient() {
   return new BetaAnalyticsDataClient();
 }
 
+// Diagnostico temporal: confirma si la variable de entorno llego al servidor, sin exponer su contenido.
+r.get("/analytics-debug", (_req, res) => {
+  const json = process.env.GA_SERVICE_ACCOUNT_JSON;
+  let parseOk = false, parseError = "", hasPrivateKey = false, clientEmail = "";
+  if (json) {
+    try { const c = JSON.parse(json); parseOk = true; hasPrivateKey = !!c.private_key; clientEmail = c.client_email || ""; }
+    catch (e) { parseError = e.message; }
+  }
+  res.json({ present: !!json, length: json ? json.length : 0, parseOk, parseError, hasPrivateKey, clientEmail });
+});
+
 // Reporte real de GA4 a partir de un ID de propiedad (?gaId=123456789 o properties/123456789).
 // No depende de la base del backend: el frontend guarda las marcas en el navegador y manda el gaId directo.
 r.get("/analytics", async (req, res) => {
